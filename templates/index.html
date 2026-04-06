@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberHire — Job Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2234;--border:rgba(99,179,237,0.15);--border2:rgba(99,179,237,0.28);--accent:#3B82F6;--accent2:#10B981;--accent3:#F59E0B;--danger:#EF4444;--text:#E2E8F0;--muted:#64748B;--mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2rem;border-bottom:1px solid var(--border);background:var(--bg2)}
+.logo{font-family:var(--mono);font-size:1.1rem;color:var(--accent);display:flex;align-items:center;gap:10px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.4)}}
+.header-btn{background:var(--accent);color:white;border:none;padding:0.6rem 1.2rem;border-radius:6px;font-family:var(--sans);font-size:0.85rem;font-weight:500;cursor:pointer;transition:background 0.2s}
+.header-btn:hover{background:#2563EB}
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.stat-box{background:var(--bg2);padding:1rem 1.5rem;text-align:center}
+.stat-num{font-family:var(--mono);font-size:1.8rem;font-weight:700}
+.stat-num.blue{color:var(--accent)}.stat-num.green{color:var(--accent2)}.stat-num.amber{color:var(--accent3)}.stat-num.red{color:var(--danger)}
+.stat-label{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px}
+.nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 2rem}
+.nav-tab{font-family:var(--mono);font-size:0.75rem;padding:0.9rem 1.2rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;letter-spacing:0.05em;text-transform:uppercase;background:none;border-top:none;border-left:none;border-right:none}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+main{padding:2rem;max-width:1300px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+.filters{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap}
+.filter-btn{font-family:var(--mono);font-size:0.72rem;padding:5px 14px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:4px;cursor:pointer;transition:all 0.15s;letter-spacing:0.05em}
+.filter-btn.active,.filter-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,0.08)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:1px solid var(--border)}
+th{font-family:var(--mono);font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;padding:0.75rem 0.9rem;text-align:left}
+tbody tr{border-bottom:1px solid rgba(99,179,237,0.06);transition:background 0.15s}
+tbody tr:hover{background:var(--bg3)}
+td{padding:0.85rem 0.9rem;font-size:0.85rem;vertical-align:middle}
+td.company{font-weight:600}td.role{color:var(--muted)}td.date{font-family:var(--mono);font-size:0.73rem;color:var(--muted)}
+.badge{display:inline-block;font-family:var(--mono);font-size:0.66rem;padding:3px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:0.06em}
+.badge-Applied{background:rgba(59,130,246,0.12);color:#60A5FA;border:1px solid rgba(59,130,246,0.25)}
+.badge-Interviewing{background:rgba(245,158,11,0.12);color:#FCD34D;border:1px solid rgba(245,158,11,0.25)}
+.badge-Offer{background:rgba(16,185,129,0.12);color:#34D399;border:1px solid rgba(16,185,129,0.25)}
+.badge-Rejected{background:rgba(239,68,68,0.12);color:#F87171;border:1px solid rgba(239,68,68,0.25)}
+.badge-Ghosted{background:rgba(100,116,139,0.12);color:#94A3B8;border:1px solid rgba(100,116,139,0.25)}
+.badge-High{background:rgba(239,68,68,0.12);color:#F87171;border:1px solid rgba(239,68,68,0.25)}
+.badge-Medium{background:rgba(245,158,11,0.12);color:#FCD34D;border:1px solid rgba(245,158,11,0.25)}
+.badge-Low{background:rgba(100,116,139,0.12);color:#94A3B8;border:1px solid rgba(100,116,139,0.25)}
+.action-btn{font-size:0.73rem;padding:4px 9px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;margin-right:3px}
+.action-btn:hover{border-color:var(--accent);color:var(--accent)}
+.action-btn.ai{border-color:rgba(16,185,129,0.3);color:#34D399}
+.action-btn.ai:hover{background:rgba(16,185,129,0.1)}
+.action-btn.del{border-color:rgba(239,68,68,0.2);color:#F87171}
+.action-btn.del:hover{background:rgba(239,68,68,0.1)}
+.action-btn.visit{border-color:rgba(59,130,246,0.3);color:#60A5FA;text-decoration:none;display:inline-block}
+.action-btn.visit:hover{background:rgba(59,130,246,0.1)}
+.empty{text-align:center;padding:4rem 2rem;color:var(--muted)}
+.empty-icon{font-size:2.5rem;margin-bottom:1rem;opacity:0.4}
+.empty p{font-family:var(--mono);font-size:0.85rem}
+.targets-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+.section-title{font-family:var(--mono);font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em}
+.targets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.target-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;transition:border-color 0.15s}
+.target-card:hover{border-color:var(--border2)}
+.target-card.priority-High{border-left:3px solid var(--danger)}
+.target-card.priority-Medium{border-left:3px solid var(--accent3)}
+.target-card.priority-Low{border-left:3px solid var(--muted)}
+.tc-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.tc-industry{font-size:11px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+.tc-location{font-size:12px;color:var(--muted);margin-bottom:8px}
+.tc-notes{font-size:12px;color:#94A3B8;line-height:1.5;margin-bottom:10px;border-top:1px solid var(--border);padding-top:8px}
+.tc-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:2rem;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal h2{font-family:var(--mono);font-size:0.85rem;color:var(--accent);margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:0.1em}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+label{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-family:var(--mono)}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--sans);font-size:0.88rem;padding:0.55rem 0.75rem;outline:none;transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--bg2)}
+textarea{resize:vertical;min-height:65px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem}
+.btn-cancel{background:transparent;border:1px solid var(--border);color:var(--muted);padding:0.6rem 1.2rem;border-radius:6px;cursor:pointer;font-family:var(--sans);font-size:0.85rem}
+.btn-save{background:var(--accent);color:white;border:none;padding:0.6rem 1.2rem;border-radius:6px;cursor:pointer;font-family:var(--sans);font-size:0.85rem;font-weight:500}
+.email-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:1rem;font-size:0.84rem;line-height:1.7;white-space:pre-wrap;color:var(--text);min-height:200px;margin-top:1rem}
+.loading{text-align:center;padding:2rem;color:var(--muted);font-family:var(--mono);font-size:0.8rem}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="logo-dot"></div>CYBERHIRE · LAS VEGAS</div>
+  <button class="header-btn" id="main-add-btn" onclick="openAddModal()">+ New Application</button>
+</header>
+<div class="stats-bar">
+  <div class="stat-box"><div class="stat-num">{{ stats.total }}</div><div class="stat-label">Total</div></div>
+  <div class="stat-box"><div class="stat-num blue">{{ stats.applied }}</div><div class="stat-label">Applied</div></div>
+  <div class="stat-box"><div class="stat-num amber">{{ stats.interviewing }}</div><div class="stat-label">Interviewing</div></div>
+  <div class="stat-box"><div class="stat-num green">{{ stats.offer }}</div><div class="stat-label">Offers</div></div>
+  <div class="stat-box"><div class="stat-num red">{{ stats.rejected }}</div><div class="stat-label">Rejected</div></div>
+</div>
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showPage('applications',this)" id="tab-apps">Applications</button>
+  <button class="nav-tab" onclick="showPage('targets',this)" id="tab-targets">🎯 LV Targets ({{ targets|length }})</button>
+</div>
+<main>
+  <div class="page active" id="page-applications">
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterApps('all',this)">All</button>
+      <button class="filter-btn" onclick="filterApps('Applied',this)">Applied</button>
+      <button class="filter-btn" onclick="filterApps('Interviewing',this)">Interviewing</button>
+      <button class="filter-btn" onclick="filterApps('Offer',this)">Offer</button>
+      <button class="filter-btn" onclick="filterApps('Rejected',this)">Rejected</button>
+      <button class="filter-btn" onclick="filterApps('Ghosted',this)">Ghosted</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Company</th><th>Role</th><th>Status</th><th>Clearance</th><th>Work Type</th><th>Certs Required</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="app-list">
+          {% for a in applications %}
+          <tr data-status="{{ a.status }}" data-id="{{ a.id }}">
+            <td class="company">{{ a.company }}</td>
+            <td class="role">{{ a.role }}</td>
+            <td><span class="badge badge-{{ a.status }}">{{ a.status }}</span></td>
+            <td style="font-size:0.78rem;color:var(--muted)">{{ a.clearance or '—' }}</td>
+            <td style="font-size:0.78rem;color:var(--muted)">{{ a.work_type or '—' }}</td>
+            <td style="font-size:0.75rem;color:var(--muted)">{{ a.certs_required or '—' }}</td>
+            <td class="date">{{ a.date_applied }}</td>
+            <td>
+              <button class="action-btn ai" onclick="generateEmail({{ a.id }},'{{ a.company }}','{{ a.role }}')">✦ AI Email</button>
+              <button class="action-btn" onclick="editApp({{ a.id }},'{{ a.company }}','{{ a.role }}','{{ a.status }}','{{ a.contact_name }}','{{ a.contact_email }}','{{ a.job_url }}',`{{ a.notes }}`,'{{ a.clearance }}','{{ a.certs_required }}','{{ a.work_type }}','{{ a.sector }}')">Edit</button>
+              <button class="action-btn del" onclick="deleteApp({{ a.id }},this)">Delete</button>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="8"><div class="empty"><div class="empty-icon">🛡️</div><p>No applications yet — check the LV Targets tab!</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="page" id="page-targets">
+    <div class="targets-header">
+      <div class="section-title">Las Vegas &amp; Nevada cybersecurity employers — pre-loaded for you</div>
+      <button class="header-btn" onclick="openTargetModal()">+ Add Company</button>
+    </div>
+    <div class="targets-grid" id="targets-grid">
+      {% for t in targets %}
+      <div class="target-card priority-{{ t.priority }}" id="tc-{{ t.id }}">
+        <div class="tc-name">{{ t.name }}</div>
+        <div class="tc-industry">{{ t.industry }}</div>
+        <div class="tc-location">📍 {{ t.location }}</div>
+        <div class="tc-notes">{{ t.notes }}</div>
+        <div class="tc-footer">
+          <span class="badge badge-{{ t.priority }}">{{ t.priority }} priority</span>
+          <div>
+            {% if t.careers_url %}<a href="{{ t.careers_url }}" target="_blank" class="action-btn visit" style="font-size:0.73rem;padding:4px 9px;border-radius:4px;text-decoration:none">Careers →</a>{% endif %}
+            <button class="action-btn" onclick="applyFromTarget('{{ t.name }}','{{ t.industry }}')">+ Apply</button>
+            <button class="action-btn del" onclick="deleteTarget({{ t.id }},this)">✕</button>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="empty"><div class="empty-icon">🎯</div><p>No target companies yet.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</main>
+
+<!-- App Modal -->
+<div class="overlay" id="app-modal">
+  <div class="modal">
+    <h2 id="modal-title">// New Application</h2>
+    <input type="hidden" id="edit-id">
+    <div class="form-grid">
+      <div class="form-group"><label>Company *</label><input type="text" id="f-company" placeholder="e.g. MGM Resorts"></div>
+      <div class="form-group"><label>Role *</label><input type="text" id="f-role" placeholder="e.g. SOC Analyst"></div>
+      <div class="form-group"><label>Status</label><select id="f-status"><option>Applied</option><option>Interviewing</option><option>Offer</option><option>Rejected</option><option>Ghosted</option></select></div>
+      <div class="form-group"><label>Work Type</label><select id="f-worktype"><option>On-site</option><option>Hybrid</option><option>Remote</option></select></div>
+      <div class="form-group"><label>Clearance Required</label><select id="f-clearance"><option>None</option><option>Public Trust</option><option>Secret</option><option>Top Secret</option><option>TS/SCI</option></select></div>
+      <div class="form-group"><label>Sector</label><select id="f-sector"><option value="">—</option><option>Gaming / Hospitality</option><option>Government</option><option>Defense Contractor</option><option>Healthcare</option><option>Finance</option><option>Tech</option><option>Education</option><option>Other</option></select></div>
+      <div class="form-group full"><label>Certifications Required</label><input type="text" id="f-certs" placeholder="e.g. Security+, CISSP, CEH"></div>
+      <div class="form-group full"><label>Job URL</label><input type="text" id="f-url" placeholder="https://..."></div>
+      <div class="form-group"><label>Contact Name</label><input type="text" id="f-contact" placeholder="Recruiter name"></div>
+      <div class="form-group"><label>Contact Email</label><input type="email" id="f-email" placeholder="recruiter@company.com"></div>
+      <div class="form-group full"><label>Notes</label><textarea id="f-notes" placeholder="Interview notes, salary range, requirements..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('app-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveApp()">Save Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- Target Modal -->
+<div class="overlay" id="target-modal">
+  <div class="modal">
+    <h2>// Add Target Company</h2>
+    <div class="form-grid">
+      <div class="form-group full"><label>Company Name *</label><input type="text" id="t-name" placeholder="Company name"></div>
+      <div class="form-group"><label>Industry</label><input type="text" id="t-industry" placeholder="e.g. Gaming / Hospitality"></div>
+      <div class="form-group"><label>Location</label><input type="text" id="t-location" value="Las Vegas, NV"></div>
+      <div class="form-group"><label>Priority</label><select id="t-priority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div class="form-group full"><label>Careers URL</label><input type="text" id="t-url" placeholder="https://..."></div>
+      <div class="form-group full"><label>Notes</label><textarea id="t-notes" placeholder="Why you're targeting this company..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('target-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveTarget()">Add Company</button>
+    </div>
+  </div>
+</div>
+
+<!-- Email Modal -->
+<div class="overlay" id="email-modal">
+  <div class="modal">
+    <h2 id="email-modal-title">// AI Follow-up Email</h2>
+    <div id="email-content"><div class="loading">✦ Generating your email...</div></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('email-modal')">Close</button>
+      <button class="btn-save" onclick="copyEmail()">Copy Email</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('main-add-btn').style.display=id==='applications'?'':'none';
+}
+function openAddModal(){
+  document.getElementById('modal-title').textContent='// New Application';
+  document.getElementById('edit-id').value='';
+  ['company','role','url','contact','email','notes','certs'].forEach(f=>document.getElementById('f-'+f).value='');
+  document.getElementById('f-status').value='Applied';
+  document.getElementById('f-clearance').value='None';
+  document.getElementById('f-worktype').value='On-site';
+  document.getElementById('f-sector').value='';
+  document.getElementById('app-modal').classList.add('open');
+}
+function editApp(id,company,role,status,contact,cemail,url,notes,clearance,certs,worktype,sector){
+  document.getElementById('modal-title').textContent='// Edit Application';
+  document.getElementById('edit-id').value=id;
+  document.getElementById('f-company').value=company;
+  document.getElementById('f-role').value=role;
+  document.getElementById('f-status').value=status;
+  document.getElementById('f-contact').value=contact;
+  document.getElementById('f-email').value=cemail;
+  document.getElementById('f-url').value=url;
+  document.getElementById('f-notes').value=notes;
+  document.getElementById('f-clearance').value=clearance||'None';
+  document.getElementById('f-certs').value=certs||'';
+  document.getElementById('f-worktype').value=worktype||'On-site';
+  document.getElementById('f-sector').value=sector||'';
+  document.getElementById('app-modal').classList.add('open');
+}
+async function saveApp(){
+  const company=document.getElementById('f-company').value.trim();
+  const role=document.getElementById('f-role').value.trim();
+  if(!company||!role){alert('Company and Role are required');return;}
+  const data={company,role,status:document.getElementById('f-status').value,job_url:document.getElementById('f-url').value,contact_name:document.getElementById('f-contact').value,contact_email:document.getElementById('f-email').value,notes:document.getElementById('f-notes').value,clearance:document.getElementById('f-clearance').value,certs_required:document.getElementById('f-certs').value,work_type:document.getElementById('f-worktype').value,sector:document.getElementById('f-sector').value};
+  const editId=document.getElementById('edit-id').value;
+  const res=await fetch(editId?`/update/${editId}`:'/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  if((await res.json()).success){closeModal('app-modal');location.reload();}
+}
+async function deleteApp(id,btn){
+  if(!confirm('Delete this application?'))return;
+  const res=await fetch(`/delete/${id}`,{method:'POST'});
+  if((await res.json()).success)btn.closest('tr').remove();
+}
+function filterApps(status,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#app-list tr[data-status]').forEach(row=>{row.style.display=(status==='all'||row.dataset.status===status)?'':'none';});
+}
+function openTargetModal(){document.getElementById('target-modal').classList.add('open');}
+async function saveTarget(){
+  const name=document.getElementById('t-name').value.trim();
+  if(!name){alert('Company name is required');return;}
+  const data={name,industry:document.getElementById('t-industry').value,location:document.getElementById('t-location').value,careers_url:document.getElementById('t-url').value,notes:document.getElementById('t-notes').value,priority:document.getElementById('t-priority').value};
+  const res=await fetch('/targets/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  if((await res.json()).success){closeModal('target-modal');location.reload();}
+}
+async function deleteTarget(id,btn){
+  if(!confirm('Remove this company?'))return;
+  const res=await fetch(`/targets/delete/${id}`,{method:'POST'});
+  if((await res.json()).success)btn.closest('.target-card').remove();
+}
+function applyFromTarget(company,sector){
+  document.getElementById('modal-title').textContent='// New Application';
+  document.getElementById('edit-id').value='';
+  ['role','url','contact','email','notes','certs'].forEach(f=>document.getElementById('f-'+f).value='');
+  document.getElementById('f-company').value=company;
+  document.getElementById('f-status').value='Applied';
+  document.getElementById('f-clearance').value='None';
+  document.getElementById('f-worktype').value='On-site';
+  document.getElementById('f-sector').value=sector||'';
+  showPage('applications',document.getElementById('tab-apps'));
+  document.getElementById('app-modal').classList.add('open');
+}
+async function generateEmail(id,company,role){
+  document.getElementById('email-modal-title').textContent=`// AI Email — ${company}`;
+  document.getElementById('email-content').innerHTML='<div class="loading">✦ Generating your follow-up email...</div>';
+  document.getElementById('email-modal').classList.add('open');
+  const res=await fetch(`/generate_email/${id}`,{method:'POST'});
+  const data=await res.json();
+  document.getElementById('email-content').innerHTML=data.error?`<div class="email-box" style="color:var(--danger)">${data.error}</div>`:`<div class="email-box" id="email-text">${data.email}</div>`;
+}
+function copyEmail(){const txt=document.getElementById('email-text');if(txt){navigator.clipboard.writeText(txt.textContent);alert('Copied!');}}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+</script>
+</body>
+</html>
