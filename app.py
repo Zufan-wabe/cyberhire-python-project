@@ -157,7 +157,6 @@ Subject line first then email body. Professional specific to cybersecurity."""
     msg = client.messages.create(model="claude-opus-4-6", max_tokens=600,
         messages=[{"role": "user", "content": prompt}])
     return jsonify({'email': msg.content[0].text})
-
 if __name__ == '__main__':
-   port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
