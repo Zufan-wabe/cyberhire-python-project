@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CyberHire — Login</title>
+  <style>
+    body { font-family: sans-serif; background: #0d1117; color: #fff; display: flex;
+           align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .box { background: #161b22; padding: 40px; border-radius: 8px; width: 300px; }
+    input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #333;
+            background: #0d1117; color: #fff; box-sizing: border-box; }
+    button { width: 100%; padding: 10px; background: #2563eb; color: #fff; border: none;
+              border-radius: 4px; cursor: pointer; }
+    .error { color: #f87171; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🛡️ CyberHire</h2>
+    <form method="POST">
+      <input type="password" name="password" placeholder="Enter password" required autofocus>
+      <button type="submit">Enter</button>
+      {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    </form>
+  </div>
+</body>
+</html>
