@@ -7,6 +7,33 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cyberhire.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
+from functools import wraps
+from flask import session, redirect, url_for
+
+app.secret_key = os.environ.get('SECRET_KEY', 'change-this-secret')
+APP_PASSWORD = os.environ.get('APP_PASSWORD', 'changeme')
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        if request.form.get('password') == APP_PASSWORD:
+            session['logged_in'] = True
+            return redirect(url_for('index'))
+        return render_template('login.html', error='Wrong password')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
 
 with app.app_context():
     db.create_all()
@@ -76,6 +103,7 @@ with app.app_context():
         db.session.commit()
 
 @app.route('/')
+@login_required
 def index():
     apps = Application.query.order_by(Application.date_applied.desc()).all()
     targets = TargetCompany.query.order_by(TargetCompany.name).all()
@@ -87,8 +115,8 @@ def index():
         'rejected': sum(1 for a in apps if a.status == 'Rejected'),
     }
     return render_template('index.html', applications=apps, stats=stats, targets=targets)
-
 @app.route('/add', methods=['POST'])
+@login_required
 def add_application():
     data = request.json
     entry = Application(
@@ -102,8 +130,8 @@ def add_application():
     db.session.add(entry)
     db.session.commit()
     return jsonify({'success': True, 'id': entry.id})
-
 @app.route('/update/<int:app_id>', methods=['POST'])
+@login_required
 def update_application(app_id):
     data = request.json
     entry = Application.query.get_or_404(app_id)
@@ -112,15 +140,15 @@ def update_application(app_id):
             setattr(entry, key, val)
     db.session.commit()
     return jsonify({'success': True})
-
 @app.route('/delete/<int:app_id>', methods=['POST'])
+@login_required
 def delete_application(app_id):
     entry = Application.query.get_or_404(app_id)
     db.session.delete(entry)
     db.session.commit()
     return jsonify({'success': True})
-
 @app.route('/targets/add', methods=['POST'])
+@login_required
 def add_target():
     data = request.json
     t = TargetCompany(name=data['name'], industry=data.get('industry', ''),
@@ -129,15 +157,15 @@ def add_target():
     db.session.add(t)
     db.session.commit()
     return jsonify({'success': True, 'id': t.id})
-
 @app.route('/targets/delete/<int:t_id>', methods=['POST'])
+@login_required
 def delete_target(t_id):
     t = TargetCompany.query.get_or_404(t_id)
     db.session.delete(t)
     db.session.commit()
     return jsonify({'success': True})
-
 @app.route('/generate_email/<int:app_id>', methods=['POST'])
+@login_required
 def generate_email(app_id):
     import anthropic
     entry = Application.query.get_or_404(app_id)
